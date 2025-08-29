@@ -48,7 +48,7 @@ def sitk_image_fromArray(arr3D, origin, spacing):
     img_sitk.SetSpacing(spacing)
     return img_sitk
 
-def sitkHelper_VTKToITKImage(fileName, tempFile=None, arrayName=None):
+def sitkHelper_VTKToITKImage(fileName, arrayName=None):
     if type(fileName) == str:
         if os.path.splitext(fileName)[1] == '.vts':
             imgVTK = __vtsToVTI(fileName, arrayName)
