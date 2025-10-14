@@ -797,7 +797,7 @@ def deformPvdToSingleTimePoint(masterF, pvdFile, arrayName,
             print(fIO.writeVTK_PVD_Dict(transformDict2, outputDir, '%sTransform'%(outputLabel), 'vti'))
         print(fIO.writeVTK_PVD_Dict(transformDict, outputDir, '%s_TransformField'%(outputLabel), 'hdf5'))
     if len(surfDict) > 0:
-        print(fIO.writeVTK_PVD_Dict(surfDict, outputDir, '%s'%(outputLabel), 'stl'))
+        print(fIO.writeVTK_PVD_Dict(surfDict, outputDir, '%s'%(outputLabel), 'vtp'))
 
 
 def transformSurfViaTransformField(transFormImagePvd, outputDir, outputLabel, surfIn, extn):
