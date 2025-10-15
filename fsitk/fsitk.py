@@ -162,6 +162,12 @@ def filterMedian(imObj, rad=3):
     mF.SetRadius(rad)
     return mF.Execute(imObj)
 
+def filterBilateral(imObj, domainSig, rangeSig):
+    bF = sitk.BilateralImageFilter()
+    bF.SetDomainSigma(domainSig)
+    bF.SetRangeSigma(rangeSig)
+    return bF.Execute(imObj)
+
 '''
 # This better:
 # dnNL[:, :, k1] = denoise_nl_means(iA, h=20.15 * sigmaEst, patch_size=9, patch_distance=5)
