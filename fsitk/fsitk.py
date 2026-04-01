@@ -932,7 +932,14 @@ def writeOutTransformField(fIN, outDir, outprefix):
 
 ### ====================================================================================================================
 ### ====================================================================================================================
-def biasCorrectionOfImageData_Generalised(imageFile_orImage, arrayName, vtiFileOUT=None, sampleRate=(6,6,6), MedFilter=10, MASK=None):
+def biasCorrectionOfImageData_Generalised(imageFile_orImage, 
+                                            arrayName, 
+                                            vtiFileOUT=None, 
+                                            sampleRate=(6,6,6), 
+                                            MedFilter=10, 
+                                            MASK=None, 
+                                            maxIterations=50,
+                                            numberFittingLevels=4):
     """
     This is a generalisied method that does not use the shrink factor approach but rather a
     subsampling and then Med filter
@@ -944,6 +951,7 @@ def biasCorrectionOfImageData_Generalised(imageFile_orImage, arrayName, vtiFileO
     else:
         ii = imageFile_orImage
     dims = ii.GetExtent() # takes care of if already subgrid
+    aMin, aMax = ii.GetPointData().GetArray(arrayName).GetRange()
     if (type(sampleRate) != list) & (type(sampleRate) != tuple):
         sampleRate = [sampleRate, sampleRate, sampleRate]
     vtkfilters.setArrayAsScalars(ii, arrayName)
@@ -959,14 +967,14 @@ def biasCorrectionOfImageData_Generalised(imageFile_orImage, arrayName, vtiFileO
         maskImage = sitk.Cast(maskImage, sitk.sitkUInt8)
     iiMedSITK = sitk.Cast(iiMedSITK, sitk.sitkFloat32)
     corrector = sitk.N4BiasFieldCorrectionImageFilter()
-    corrector.SetMaximumNumberOfIterations([50] * 4)
+    corrector.SetMaximumNumberOfIterations([maxIterations] * numberFittingLevels)
     output = corrector.Execute(iiMedSITK)
     # output = corrector.Execute(iiMedSITK, maskImage)
     iiSITK = sitkHelper_VTKToITKImage(ii)
     iiSITK = sitk.Cast(iiSITK, sitk.sitkFloat32)
     log_bias_field = corrector.GetLogBiasFieldAsImage(iiSITK)
     output = iiSITK / sitk.Exp(log_bias_field)
-    output = sitk.RescaleIntensity(output)
+    output = sitk.RescaleIntensity(output, aMin, aMax)
     output = sitk.Cast(output, sitk.sitkUInt16)
     iiOut = sitkHelper_ITKToVTKImage(output, arrayName)
     if vtiFileOUT is not  None:
