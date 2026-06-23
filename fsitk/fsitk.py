@@ -652,36 +652,25 @@ def deformVTIA_to_VTIB(iiFixed, iiMoving, arrayNameFixed, arrayNameMoving, maxIt
     return ii, tx
 
 
-def deformSurf2Surf(surfFixed, surfMoving, res, DEBUG=False):
+def deformSurf2Surf(surfFixed, surfMoving, res):
     aName = 'PixelData'
     nDilate = 1 # ?? this good ??
     nMed = 3 # ?? this good ??
     ## BUILD IMAGES
     imFixed = vtkfilters.surf2ImageBW(surfFixed, aName, res, nDilate=nDilate, nMed=nMed)
     imMoving = vtkfilters.surf2ImageBW(surfMoving, aName, res, nDilate=nDilate, nMed=nMed)
-    if DEBUG:
-        print(fIO.writeVTKFile(imFixed, '/home/fraser/temp/temp.vti'))
     # ---------------------------------------
     ## TRANSFORM X TO ATLAS
-    if DEBUG:
-        lmX_at_A = vtkfilters.iterativeClosestPointsMorphing(surfMoving, surfFixed, 0.001, RIGID=False)[-1]
-        print(fIO.writeVTKFile(lmX_at_A, '/home/fraser/temp/temp.vtp'))
     TXA_move2fix = vtkfilters.iterativeClosestPointsTransform(surfMoving, surfFixed, 0.0001, RIGID=False)
     # Got transform, now move X to A space
     imMoving_Tx1 = vtkfilters.vtiToVts_viaTransform(imMoving, transMatrix=TXA_move2fix)
     # Resample X to Atlas so have same dims
     imMoving_Tx1 = vtkfilters.filterResampleToDataset(imMoving_Tx1, imFixed)
-    if DEBUG:
-        print(fIO.writeVTKFile(imMoving_Tx1, '/home/fraser/temp/temp2.vti'))
     # Ensure data is in correct format:
     setVTIArrayTo16int(imMoving_Tx1, aName)
     setVTIArrayTo16int(imFixed, aName)
     # Atlas is FIXED
     imMoving_Tx2, Tx2 = deformVTIA_to_VTIB(imFixed, imMoving_Tx1, aName, aName, maxIter=500, subSampleVal=2, blurVal=0.005)
-    if DEBUG:
-        print(fIO.writeVTKFile(imMoving_Tx2, '/home/fraser/temp/temp3.vti'))
-        # surfi = fsitk.transformPolyData(surfAtlas, Tx2)
-        # print(fIO.writeVTKFile(surfi, os.path.join(WORKING_DIR, 'AtlasSurfAtDestination.vtp')))
     return imMoving_Tx2, Tx2, TXA_move2fix
 
 
@@ -1001,7 +990,6 @@ def biasFieldCorrection(imageFile_orImage, arrayName, numberFittingLevels=4,
         if maskImage is not None:
             maskImage = sitk.Shrink(maskImage, shrinkFactor)
 
-    # print(fIO.writeVTKFile(sitkHelper_ITKToVTKImage(maskImage), '/home/fraser/temp/tempM.vti'))
     corrector = sitk.N4BiasFieldCorrectionImageFilter()
     corrector.SetMaximumNumberOfIterations([maxIterations] * numberFittingLevels)
     if maskImage is not None:
@@ -1010,7 +998,6 @@ def biasFieldCorrection(imageFile_orImage, arrayName, numberFittingLevels=4,
         output = corrector.Execute(image)
     log_bias_field = corrector.GetLogBiasFieldAsImage(inputImage)
     output = inputImage / sitk.Exp( log_bias_field )
-    # sitk.WriteImage(output, '/home/fraser/temp/temp.mha') ## DEBUG
     return sitkHelper_ITKToVTKImage(output, arrayName=arrayNameOut)
 
 def normalizeImageFilter(imageFile_orImage, arrayName, arrayNameOut=None):
@@ -1131,18 +1118,3 @@ class BiasCorrectionInteractive(): # THIS IS TOO SLOW
 
 ### ====================================================================================================================
 ### ====================================================================================================================
-
-
-# ==================================================================
-# S T A R T
-#
-if __name__ == '__main__':
-    print('TESTING')
-    # iif = '/Volume/KMR_CARDIAC_DATA/KMRC000401/PROCESSED/KMRC000401a-MRA/KMRC000401a-MRA_00005.vti'
-    # iiITK = sitkHelper_VTKToITKImage(iif, arrayName='MRA')
-    # sitk.WriteImage(iiITK, '/home/fraser/temp/temp1.mha')
-    # iiVTK = sitkHelper_ITKToVTKImage(iiITK)
-    # print(fIO.writeVTKFile(iiVTK, '/home/fraser/temp/temp1.vti'))
-    #
-    # bcOut = biasFieldCorrection(iif, maxIterations=100, shrinkFactor=2, arrayName='MRA')
-    # print(fIO.writeVTKFile(bcOut, '/home/fraser/temp/temp2.vti'))
