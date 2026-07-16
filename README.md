@@ -16,6 +16,13 @@ pip install -e .
 
 IO via fIO from ngawari repo.
 
+```python
+# For examples:
+import numpy as np
+from ngawari import fIO, vtkfilters
+from fsitk import fsitk   
+```
+
 ### Bias Correction
 
 ```python
