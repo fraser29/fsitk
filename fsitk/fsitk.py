@@ -611,6 +611,21 @@ def transformPolyData(pp, tfx):
 
 def deformArrayA_to_ArrayB(AFixed, AMoving, maxIter=500, blurVal=None,
                        subSampleVal=None, RMSError=0.00001, fileOut=None):
+    """
+    Deform one array to another using demons registration.
+
+    Args:
+        AFixed: Fixed array
+        AMoving: Moving array
+        maxIter: Maximum number of iterations [500]
+        blurVal: Blur value [None]
+        subSampleVal: Subsample value [None]
+        RMSError: Root mean square error [0.00001]
+        fileOut: File to write output [None]
+    Returns:
+        ii: Registered array
+        tx: Transformation field
+    """
     AFixed = AFixed - np.mean(AFixed)
     AFixed = AFixed / np.std(AFixed)
     AM = np.mean(AMoving)
@@ -636,6 +651,24 @@ def deformArrayA_to_ArrayB(AFixed, AMoving, maxIter=500, blurVal=None,
 
 def deformVTIA_to_VTIB(iiFixed, iiMoving, arrayNameFixed, arrayNameMoving, maxIter=500, blurVal=None,
                        subSampleVal=None, RMSError=0.00001, fileOut=None, iiMask=None):
+    """
+    Deform one image to another using demons registration.
+
+    Args:
+        iiFixed: Fixed image
+        iiMoving: Moving image
+        arrayNameFixed: Fixed array name
+        arrayNameMoving: Moving array name
+        maxIter: Maximum number of iterations [500]
+        blurVal: Blur value [None]
+        subSampleVal: Subsample value [None]
+        RMSError: Root mean square error [0.00001]
+        fileOut: File to write output [None]
+        iiMask: Mask image [None]
+    Returns:
+        ii: Registered image
+        tx: Transformation field
+    """
     fixed = sitkHelper_VTKToITKImage(iiFixed, arrayName=arrayNameFixed)
     tx = None
     moving = sitkHelper_VTKToITKImage(iiMoving, arrayName=arrayNameMoving)
@@ -734,7 +767,7 @@ def deformPvdToSingleTimePoint(masterF, pvdFile, arrayName,
     idsToRegister = list(range(fixedID, len(timeS))) + list(range(fixedID-1,-1,-1))
     fixed = vtkToItk(masterF, arrayName=arrayName)
     tx = None
-    print(idsToRegister)
+    # print(idsToRegister)
     for k1, thisID in enumerate(idsToRegister):
         if WATERFALL_REGISTRATION:
             if thisID == (fixedID-1):
@@ -792,7 +825,7 @@ def deformPvdToSingleTimePoint(masterF, pvdFile, arrayName,
             print(fIO.writeVTK_PVD_Dict(transformDict2, outputDir, '%sTransform'%(outputLabel), 'vti'))
         print(fIO.writeVTK_PVD_Dict(transformDict, outputDir, '%s_TransformField'%(outputLabel), 'hdf5'))
     if len(surfDict) > 0:
-        print(fIO.writeVTK_PVD_Dict(surfDict, outputDir, '%s'%(outputLabel), 'vtp'))
+        print(fIO.writeVTK_PVD_Dict(surfDict, outputDir, f"surfTx_{outputLabel}", 'vtp'))
 
 
 def transformSurfViaTransformField(transFormImagePvd, outputDir, outputLabel, surfIn, extn):
